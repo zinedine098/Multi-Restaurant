@@ -2,7 +2,7 @@
     "info": {
         "_postman_id": "multi-restaurant-api-2026",
         "name": "Multi-Restaurant API",
-        "description": "REST API Collection untuk Aplikasi Pemesanan Restoran Multi-Cabang.\n\n## Cara Pakai:\n1. Set variable `base_url` ke URL server (default: http://localhost:8000/api)\n2. Login terlebih dahulu via Auth > Login\n3. Token otomatis tersimpan di variable `token`\n4. Semua request authenticated akan menggunakan token tersebut\n\n## Roles:\n- **owner**: Full access semua cabang\n- **admin**: Hampir penuh kecuali delete critical\n- **manager**: Operasional cabang sendiri\n- **waiter**: Input order & proses pembayaran\n- **kitchen**: Update status pesanan",
+        "description": "REST API Collection untuk Aplikasi Pemesanan Restoran Multi-Cabang.\n\n## Cara Pakai:\n1. Set environment ke 'Multi-Restaurant - Local'\n2. Login terlebih dahulu via Auth > Login\n3. Token otomatis tersimpan di variable `token`\n4. Semua request authenticated akan menggunakan token tersebut\n\n## Pagination:\nSemua list endpoint mendukung pagination:\n- `page` - Nomor halaman (default: 1)\n- `per_page` - Jumlah data per halaman (default: 15)\n\n## Roles:\n- **owner**: Full access semua cabang\n- **admin**: Hampir penuh kecuali delete critical\n- **manager**: Operasional cabang sendiri\n- **waiter**: Input order & proses pembayaran\n- **kitchen**: Update status pesanan",
         "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
     },
     "variable": [
@@ -43,7 +43,7 @@
                                     "var jsonData = pm.response.json();",
                                     "if (jsonData.success && jsonData.data && jsonData.data.token) {",
                                     "    pm.collectionVariables.set('token', jsonData.data.token);",
-                                    "    console.log('Token saved successfully!');",
+                                    "    console.log('Token saved: ' + jsonData.data.token);",
                                     "}"
                                 ]
                             }
@@ -66,7 +66,7 @@
                         ],
                         "body": {
                             "mode": "raw",
-                            "raw": "{\n    \"username\": \"owner1\",\n    \"password\": \"password\"\n}"
+                            "raw": "{\n    \"username\": \"owner\",\n    \"password\": \"password123\"\n}"
                         },
                         "url": {
                             "raw": "{{base_url}}/auth/login",
@@ -78,12 +78,22 @@
                                 "login"
                             ]
                         },
-                        "description": "Login user dan mendapatkan Bearer token.\n\nToken otomatis tersimpan ke collection variable."
+                        "description": "Login user dan mendapatkan Bearer token.\n\nToken otomatis tersimpan ke collection variable.\n\nAccounts:\n- owner / password123\n- admin / password123\n- manager1 / password123\n- waiter11 / password123\n- kitchen11 / password123"
                     }
                 },
                 {
                     "name": "Logout",
                     "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{token}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
                         "method": "POST",
                         "header": [
                             {
@@ -107,6 +117,16 @@
                 {
                     "name": "Get Profile (Me)",
                     "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{token}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
                         "method": "GET",
                         "header": [
                             {
@@ -132,6 +152,16 @@
         {
             "name": "Restaurants",
             "description": "CRUD Restoran/Cabang\n- owner/admin: Create, Edit\n- owner: Delete\n- all: View (scoped)",
+            "auth": {
+                "type": "bearer",
+                "bearer": [
+                    {
+                        "key": "token",
+                        "value": "{{token}}",
+                        "type": "string"
+                    }
+                ]
+            },
             "item": [
                 {
                     "name": "List All Restaurants",
@@ -144,15 +174,25 @@
                             }
                         ],
                         "url": {
-                            "raw": "{{base_url}}/restaurants",
+                            "raw": "{{base_url}}/restaurants?page=1&per_page=15",
                             "host": [
                                 "{{base_url}}"
                             ],
                             "path": [
                                 "restaurants"
+                            ],
+                            "query": [
+                                {
+                                    "key": "page",
+                                    "value": "1"
+                                },
+                                {
+                                    "key": "per_page",
+                                    "value": "15"
+                                }
                             ]
                         },
-                        "description": "Owner/Admin: lihat semua restaurant.\nRole lain: hanya lihat cabang sendiri."
+                        "description": "Owner/Admin: lihat semua restaurant.\nRole lain: hanya lihat cabang sendiri.\n\nSupports pagination: page, per_page"
                     }
                 },
                 {
@@ -267,6 +307,16 @@
         {
             "name": "Users",
             "description": "User Management\n- owner/admin: Create, Edit\n- owner: Delete\n- owner/admin/manager: View",
+            "auth": {
+                "type": "bearer",
+                "bearer": [
+                    {
+                        "key": "token",
+                        "value": "{{token}}",
+                        "type": "string"
+                    }
+                ]
+            },
             "item": [
                 {
                     "name": "List Users",
@@ -279,15 +329,25 @@
                             }
                         ],
                         "url": {
-                            "raw": "{{base_url}}/users",
+                            "raw": "{{base_url}}/users?page=1&per_page=15",
                             "host": [
                                 "{{base_url}}"
                             ],
                             "path": [
                                 "users"
+                            ],
+                            "query": [
+                                {
+                                    "key": "page",
+                                    "value": "1"
+                                },
+                                {
+                                    "key": "per_page",
+                                    "value": "15"
+                                }
                             ]
                         },
-                        "description": "List semua user. Owner/Admin: semua, Manager: cabang sendiri."
+                        "description": "List semua user. Owner/Admin: semua, Manager: cabang sendiri.\n\nSupports pagination: page, per_page"
                     }
                 },
                 {
@@ -301,7 +361,7 @@
                             }
                         ],
                         "url": {
-                            "raw": "{{base_url}}/users?restaurant_id=1",
+                            "raw": "{{base_url}}/users?restaurant_id=1&page=1&per_page=15",
                             "host": [
                                 "{{base_url}}"
                             ],
@@ -312,6 +372,14 @@
                                 {
                                     "key": "restaurant_id",
                                     "value": "1"
+                                },
+                                {
+                                    "key": "page",
+                                    "value": "1"
+                                },
+                                {
+                                    "key": "per_page",
+                                    "value": "15"
                                 }
                             ]
                         }
@@ -328,7 +396,7 @@
                             }
                         ],
                         "url": {
-                            "raw": "{{base_url}}/users?role=waiter",
+                            "raw": "{{base_url}}/users?role=waiter&page=1&per_page=15",
                             "host": [
                                 "{{base_url}}"
                             ],
@@ -339,6 +407,14 @@
                                 {
                                     "key": "role",
                                     "value": "waiter"
+                                },
+                                {
+                                    "key": "page",
+                                    "value": "1"
+                                },
+                                {
+                                    "key": "per_page",
+                                    "value": "15"
                                 }
                             ]
                         }
@@ -382,7 +458,7 @@
                         ],
                         "body": {
                             "mode": "raw",
-                            "raw": "{\n    \"restaurant_id\": 1,\n    \"username\": \"waiter1\",\n    \"password\": \"password\",\n    \"full_name\": \"Budi Pelayan\",\n    \"email\": \"budi@resto.com\",\n    \"phone\": \"08123456789\",\n    \"role\": \"waiter\",\n    \"is_active\": true\n}"
+                            "raw": "{\n    \"restaurant_id\": 1,\n    \"username\": \"newwaiter\",\n    \"password\": \"password123\",\n    \"full_name\": \"Budi Pelayan\",\n    \"email\": \"budi@resto.com\",\n    \"phone\": \"08123456789\",\n    \"role\": \"waiter\",\n    \"is_active\": true\n}"
                         },
                         "url": {
                             "raw": "{{base_url}}/users",
@@ -455,6 +531,16 @@
         {
             "name": "Menu Categories",
             "description": "Kategori Menu per Restaurant\n- owner/admin/manager: CRUD\n- all authenticated: View",
+            "auth": {
+                "type": "bearer",
+                "bearer": [
+                    {
+                        "key": "token",
+                        "value": "{{token}}",
+                        "type": "string"
+                    }
+                ]
+            },
             "item": [
                 {
                     "name": "List Menu Categories",
@@ -467,12 +553,22 @@
                             }
                         ],
                         "url": {
-                            "raw": "{{base_url}}/menu-categories",
+                            "raw": "{{base_url}}/menu-categories?page=1&per_page=15",
                             "host": [
                                 "{{base_url}}"
                             ],
                             "path": [
                                 "menu-categories"
+                            ],
+                            "query": [
+                                {
+                                    "key": "page",
+                                    "value": "1"
+                                },
+                                {
+                                    "key": "per_page",
+                                    "value": "15"
+                                }
                             ]
                         }
                     }
@@ -488,7 +584,7 @@
                             }
                         ],
                         "url": {
-                            "raw": "{{base_url}}/menu-categories?restaurant_id=1",
+                            "raw": "{{base_url}}/menu-categories?restaurant_id=1&page=1&per_page=15",
                             "host": [
                                 "{{base_url}}"
                             ],
@@ -499,6 +595,14 @@
                                 {
                                     "key": "restaurant_id",
                                     "value": "1"
+                                },
+                                {
+                                    "key": "page",
+                                    "value": "1"
+                                },
+                                {
+                                    "key": "per_page",
+                                    "value": "15"
                                 }
                             ]
                         }
@@ -613,6 +717,16 @@
         {
             "name": "Menu Items",
             "description": "Menu Item per Restaurant\n- owner/admin/manager: CRUD\n- all authenticated: View\n- Supports search & filter",
+            "auth": {
+                "type": "bearer",
+                "bearer": [
+                    {
+                        "key": "token",
+                        "value": "{{token}}",
+                        "type": "string"
+                    }
+                ]
+            },
             "item": [
                 {
                     "name": "List Menu Items",
@@ -625,12 +739,22 @@
                             }
                         ],
                         "url": {
-                            "raw": "{{base_url}}/menu-items",
+                            "raw": "{{base_url}}/menu-items?page=1&per_page=15",
                             "host": [
                                 "{{base_url}}"
                             ],
                             "path": [
                                 "menu-items"
+                            ],
+                            "query": [
+                                {
+                                    "key": "page",
+                                    "value": "1"
+                                },
+                                {
+                                    "key": "per_page",
+                                    "value": "15"
+                                }
                             ]
                         }
                     }
@@ -646,7 +770,7 @@
                             }
                         ],
                         "url": {
-                            "raw": "{{base_url}}/menu-items?category_id=1",
+                            "raw": "{{base_url}}/menu-items?category_id=1&page=1&per_page=15",
                             "host": [
                                 "{{base_url}}"
                             ],
@@ -657,6 +781,14 @@
                                 {
                                     "key": "category_id",
                                     "value": "1"
+                                },
+                                {
+                                    "key": "page",
+                                    "value": "1"
+                                },
+                                {
+                                    "key": "per_page",
+                                    "value": "15"
                                 }
                             ]
                         }
@@ -673,7 +805,7 @@
                             }
                         ],
                         "url": {
-                            "raw": "{{base_url}}/menu-items?search=nasi",
+                            "raw": "{{base_url}}/menu-items?search=nasi&page=1&per_page=15",
                             "host": [
                                 "{{base_url}}"
                             ],
@@ -684,6 +816,14 @@
                                 {
                                     "key": "search",
                                     "value": "nasi"
+                                },
+                                {
+                                    "key": "page",
+                                    "value": "1"
+                                },
+                                {
+                                    "key": "per_page",
+                                    "value": "15"
                                 }
                             ]
                         }
@@ -700,7 +840,7 @@
                             }
                         ],
                         "url": {
-                            "raw": "{{base_url}}/menu-items?is_available=true",
+                            "raw": "{{base_url}}/menu-items?is_available=true&page=1&per_page=15",
                             "host": [
                                 "{{base_url}}"
                             ],
@@ -711,6 +851,14 @@
                                 {
                                     "key": "is_available",
                                     "value": "true"
+                                },
+                                {
+                                    "key": "page",
+                                    "value": "1"
+                                },
+                                {
+                                    "key": "per_page",
+                                    "value": "15"
                                 }
                             ]
                         }
@@ -824,6 +972,16 @@
         {
             "name": "Orders",
             "description": "Order Lifecycle:\n1. Waiter: Create Order (PENDING)\n2. Kitchen: Update Status (COOKING → COMPLETED)\n3. Waiter: Process Payment (PAID)\n4. Cancel Order",
+            "auth": {
+                "type": "bearer",
+                "bearer": [
+                    {
+                        "key": "token",
+                        "value": "{{token}}",
+                        "type": "string"
+                    }
+                ]
+            },
             "item": [
                 {
                     "name": "List Orders",
@@ -836,12 +994,22 @@
                             }
                         ],
                         "url": {
-                            "raw": "{{base_url}}/orders",
+                            "raw": "{{base_url}}/orders?page=1&per_page=15",
                             "host": [
                                 "{{base_url}}"
                             ],
                             "path": [
                                 "orders"
+                            ],
+                            "query": [
+                                {
+                                    "key": "page",
+                                    "value": "1"
+                                },
+                                {
+                                    "key": "per_page",
+                                    "value": "15"
+                                }
                             ]
                         }
                     }
@@ -857,7 +1025,7 @@
                             }
                         ],
                         "url": {
-                            "raw": "{{base_url}}/orders?status=pending",
+                            "raw": "{{base_url}}/orders?status=pending&page=1&per_page=15",
                             "host": [
                                 "{{base_url}}"
                             ],
@@ -868,6 +1036,14 @@
                                 {
                                     "key": "status",
                                     "value": "pending"
+                                },
+                                {
+                                    "key": "page",
+                                    "value": "1"
+                                },
+                                {
+                                    "key": "per_page",
+                                    "value": "15"
                                 }
                             ]
                         }
@@ -884,7 +1060,7 @@
                             }
                         ],
                         "url": {
-                            "raw": "{{base_url}}/orders?date_from=2026-02-01&date_to=2026-02-28",
+                            "raw": "{{base_url}}/orders?date_from=2026-02-01&date_to=2026-02-28&page=1&per_page=15",
                             "host": [
                                 "{{base_url}}"
                             ],
@@ -899,6 +1075,14 @@
                                 {
                                     "key": "date_to",
                                     "value": "2026-02-28"
+                                },
+                                {
+                                    "key": "page",
+                                    "value": "1"
+                                },
+                                {
+                                    "key": "per_page",
+                                    "value": "15"
                                 }
                             ]
                         }
@@ -954,7 +1138,7 @@
                                 "orders"
                             ]
                         },
-                        "description": "Buat order baru. Access: waiter only.\n\nOrder number otomatis di-generate: ORD-YYYYMMDD-XXXX\nStatus awal: PENDING\nNotifikasi otomatis ke staff dapur."
+                        "description": "Buat order baru. Access: waiter only.\nLogin sebagai waiter11 terlebih dahulu.\n\nOrder number otomatis: ORD-YYYYMMDD-XXXX\nStatus awal: PENDING\nNotifikasi otomatis ke staff dapur."
                     }
                 },
                 {
@@ -986,7 +1170,7 @@
                                 "status"
                             ]
                         },
-                        "description": "Update status order. Access: kitchen only.\n\nValid transitions:\n- pending → cooking\n- pending → completed\n- cooking → completed\n\nNotifikasi otomatis ke pelayan saat completed."
+                        "description": "Update status order. Access: kitchen only.\nLogin sebagai kitchen11 terlebih dahulu.\n\nValid transitions:\n- pending → cooking\n- pending → completed\n- cooking → completed"
                     }
                 },
                 {
@@ -1096,7 +1280,7 @@
                                 "completed"
                             ]
                         },
-                        "description": "Order yang sudah selesai, siap dipanggil dan diproses pembayaran.\nAccess: waiter only."
+                        "description": "Order yang sudah selesai, siap diproses pembayaran.\nAccess: waiter only."
                     }
                 }
             ]
@@ -1104,6 +1288,16 @@
         {
             "name": "Inventory",
             "description": "Inventory Management\n- owner/admin/manager: Full CRUD\n- Includes stock transactions (in/out/adjustment)",
+            "auth": {
+                "type": "bearer",
+                "bearer": [
+                    {
+                        "key": "token",
+                        "value": "{{token}}",
+                        "type": "string"
+                    }
+                ]
+            },
             "item": [
                 {
                     "name": "List Inventory Items",
@@ -1116,12 +1310,22 @@
                             }
                         ],
                         "url": {
-                            "raw": "{{base_url}}/inventory-items",
+                            "raw": "{{base_url}}/inventory-items?page=1&per_page=15",
                             "host": [
                                 "{{base_url}}"
                             ],
                             "path": [
                                 "inventory-items"
+                            ],
+                            "query": [
+                                {
+                                    "key": "page",
+                                    "value": "1"
+                                },
+                                {
+                                    "key": "per_page",
+                                    "value": "15"
+                                }
                             ]
                         }
                     }
@@ -1137,7 +1341,7 @@
                             }
                         ],
                         "url": {
-                            "raw": "{{base_url}}/inventory-items?low_stock=true",
+                            "raw": "{{base_url}}/inventory-items?low_stock=true&page=1&per_page=15",
                             "host": [
                                 "{{base_url}}"
                             ],
@@ -1148,6 +1352,14 @@
                                 {
                                     "key": "low_stock",
                                     "value": "true"
+                                },
+                                {
+                                    "key": "page",
+                                    "value": "1"
+                                },
+                                {
+                                    "key": "per_page",
+                                    "value": "15"
                                 }
                             ]
                         },
@@ -1269,7 +1481,7 @@
                             }
                         ],
                         "url": {
-                            "raw": "{{base_url}}/inventory-items/1/transactions",
+                            "raw": "{{base_url}}/inventory-items/1/transactions?page=1&per_page=15",
                             "host": [
                                 "{{base_url}}"
                             ],
@@ -1277,9 +1489,19 @@
                                 "inventory-items",
                                 "1",
                                 "transactions"
+                            ],
+                            "query": [
+                                {
+                                    "key": "page",
+                                    "value": "1"
+                                },
+                                {
+                                    "key": "per_page",
+                                    "value": "15"
+                                }
                             ]
                         },
-                        "description": "Histori transaksi stok untuk item tertentu."
+                        "description": "Histori transaksi stok untuk item tertentu. Paginated."
                     }
                 },
                 {
@@ -1383,6 +1605,16 @@
         {
             "name": "Reports",
             "description": "Laporan Penjualan\n- owner/admin: semua cabang\n- manager: cabang sendiri",
+            "auth": {
+                "type": "bearer",
+                "bearer": [
+                    {
+                        "key": "token",
+                        "value": "{{token}}",
+                        "type": "string"
+                    }
+                ]
+            },
             "item": [
                 {
                     "name": "Dashboard Stats",
@@ -1446,7 +1678,7 @@
                             }
                         ],
                         "url": {
-                            "raw": "{{base_url}}/reports/daily-sales?date_from=2026-02-01&date_to=2026-02-28",
+                            "raw": "{{base_url}}/reports/daily-sales?date_from=2026-02-01&date_to=2026-02-28&page=1&per_page=15",
                             "host": [
                                 "{{base_url}}"
                             ],
@@ -1462,10 +1694,18 @@
                                 {
                                     "key": "date_to",
                                     "value": "2026-02-28"
+                                },
+                                {
+                                    "key": "page",
+                                    "value": "1"
+                                },
+                                {
+                                    "key": "per_page",
+                                    "value": "15"
                                 }
                             ]
                         },
-                        "description": "Laporan penjualan harian: total orders, gross sales, cancelled, paid."
+                        "description": "Laporan penjualan harian. Paginated."
                     }
                 },
                 {
@@ -1502,6 +1742,16 @@
         {
             "name": "Settings",
             "description": "Konfigurasi per Restaurant\n- owner: system config + delete\n- admin/manager: branch config",
+            "auth": {
+                "type": "bearer",
+                "bearer": [
+                    {
+                        "key": "token",
+                        "value": "{{token}}",
+                        "type": "string"
+                    }
+                ]
+            },
             "item": [
                 {
                     "name": "List Settings",
@@ -1514,12 +1764,22 @@
                             }
                         ],
                         "url": {
-                            "raw": "{{base_url}}/settings",
+                            "raw": "{{base_url}}/settings?page=1&per_page=15",
                             "host": [
                                 "{{base_url}}"
                             ],
                             "path": [
                                 "settings"
+                            ],
+                            "query": [
+                                {
+                                    "key": "page",
+                                    "value": "1"
+                                },
+                                {
+                                    "key": "per_page",
+                                    "value": "15"
+                                }
                             ]
                         }
                     }
@@ -1535,7 +1795,7 @@
                             }
                         ],
                         "url": {
-                            "raw": "{{base_url}}/settings?restaurant_id=1",
+                            "raw": "{{base_url}}/settings?restaurant_id=1&page=1&per_page=15",
                             "host": [
                                 "{{base_url}}"
                             ],
@@ -1546,6 +1806,14 @@
                                 {
                                     "key": "restaurant_id",
                                     "value": "1"
+                                },
+                                {
+                                    "key": "page",
+                                    "value": "1"
+                                },
+                                {
+                                    "key": "per_page",
+                                    "value": "15"
                                 }
                             ]
                         }
@@ -1608,7 +1876,17 @@
         },
         {
             "name": "Notifications",
-            "description": "Notifikasi real-time per user.\nAll authenticated users dapat mengakses notifikasi mereka sendiri.",
+            "description": "Notifikasi per user.\nAll authenticated users dapat mengakses notifikasi mereka sendiri.",
+            "auth": {
+                "type": "bearer",
+                "bearer": [
+                    {
+                        "key": "token",
+                        "value": "{{token}}",
+                        "type": "string"
+                    }
+                ]
+            },
             "item": [
                 {
                     "name": "List Notifications",
@@ -1621,12 +1899,22 @@
                             }
                         ],
                         "url": {
-                            "raw": "{{base_url}}/notifications",
+                            "raw": "{{base_url}}/notifications?page=1&per_page=15",
                             "host": [
                                 "{{base_url}}"
                             ],
                             "path": [
                                 "notifications"
+                            ],
+                            "query": [
+                                {
+                                    "key": "page",
+                                    "value": "1"
+                                },
+                                {
+                                    "key": "per_page",
+                                    "value": "15"
+                                }
                             ]
                         }
                     }
@@ -1642,7 +1930,7 @@
                             }
                         ],
                         "url": {
-                            "raw": "{{base_url}}/notifications?unread=true",
+                            "raw": "{{base_url}}/notifications?unread=true&page=1&per_page=15",
                             "host": [
                                 "{{base_url}}"
                             ],
@@ -1653,6 +1941,14 @@
                                 {
                                     "key": "unread",
                                     "value": "true"
+                                },
+                                {
+                                    "key": "page",
+                                    "value": "1"
+                                },
+                                {
+                                    "key": "per_page",
+                                    "value": "15"
                                 }
                             ]
                         }

@@ -18,18 +18,17 @@ class RestaurantController extends BaseController
     public function index(Request $request): JsonResponse
     {
         $user = $request->user();
+        $perPage = $request->get('per_page', 15);
 
-        if ($user->hasRole(['owner', 'admin'])) {
-            $restaurants = Restaurant::withCount('users', 'orders')
-                ->orderBy('name')
-                ->get();
-        } else {
-            $restaurants = Restaurant::where('id', $user->restaurant_id)
-                ->withCount('users', 'orders')
-                ->get();
+        $query = Restaurant::withCount('users', 'orders')->orderBy('name');
+
+        if (!$user->hasRole(['owner', 'admin'])) {
+            $query->where('id', $user->restaurant_id);
         }
 
-        return $this->sendResponse($restaurants);
+        $restaurants = $query->paginate($perPage);
+
+        return $this->sendPaginatedResponse($restaurants);
     }
 
     /**

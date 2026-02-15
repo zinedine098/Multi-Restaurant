@@ -18,6 +18,7 @@ class UserController extends BaseController
     public function index(Request $request): JsonResponse
     {
         $authUser = $request->user();
+        $perPage = $request->get('per_page', 15);
         $query = User::with('restaurant');
 
         if ($authUser->hasRole(['owner', 'admin'])) {
@@ -34,9 +35,9 @@ class UserController extends BaseController
             $query->where('role', $request->role);
         }
 
-        $users = $query->orderBy('full_name')->get();
+        $users = $query->orderBy('full_name')->paginate($perPage);
 
-        return $this->sendResponse($users);
+        return $this->sendPaginatedResponse($users);
     }
 
     /**

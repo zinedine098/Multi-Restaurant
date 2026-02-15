@@ -46,9 +46,10 @@ class OrderController extends BaseController
             $query->whereDate('created_at', '<=', $request->date_to);
         }
 
-        $orders = $query->orderByDesc('created_at')->get();
+        $perPage = $request->get('per_page', 15);
+        $orders = $query->orderByDesc('created_at')->paginate($perPage);
 
-        return $this->sendResponse($orders);
+        return $this->sendPaginatedResponse($orders);
     }
 
     /**

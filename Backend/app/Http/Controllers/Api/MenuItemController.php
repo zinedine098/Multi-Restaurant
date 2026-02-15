@@ -42,9 +42,10 @@ class MenuItemController extends BaseController
             $query->where('name', 'like', '%' . $request->search . '%');
         }
 
-        $menuItems = $query->orderBy('name')->get();
+        $perPage = $request->get('per_page', 15);
+        $menuItems = $query->orderBy('name')->paginate($perPage);
 
-        return $this->sendResponse($menuItems);
+        return $this->sendPaginatedResponse($menuItems);
     }
 
     /**

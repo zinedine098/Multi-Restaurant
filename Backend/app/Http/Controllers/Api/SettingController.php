@@ -18,9 +18,10 @@ class SettingController extends BaseController
             $restaurantId = $user->restaurant_id;
         }
 
-        $settings = Setting::where('restaurant_id', $restaurantId)->orderBy('key')->get();
+        $perPage = $request->get('per_page', 15);
+        $settings = Setting::where('restaurant_id', $restaurantId)->orderBy('key')->paginate($perPage);
 
-        return $this->sendResponse($settings);
+        return $this->sendPaginatedResponse($settings);
     }
 
     public function upsert(Request $request): JsonResponse

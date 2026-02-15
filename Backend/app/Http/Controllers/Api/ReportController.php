@@ -91,9 +91,10 @@ class ReportController extends BaseController
             $query->whereDate('created_at', '<=', $request->date_to);
         }
 
-        $report = $query->get();
+        $perPage = $request->get('per_page', 15);
+        $report = $query->paginate($perPage);
 
-        return $this->sendResponse($report);
+        return $this->sendPaginatedResponse($report);
     }
 
     /**

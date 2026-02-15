@@ -29,9 +29,10 @@ class MenuCategoryController extends BaseController
             $query->where('restaurant_id', $user->restaurant_id);
         }
 
-        $categories = $query->orderBy('sort_order')->orderBy('name')->get();
+        $perPage = $request->get('per_page', 15);
+        $categories = $query->orderBy('sort_order')->orderBy('name')->paginate($perPage);
 
-        return $this->sendResponse($categories);
+        return $this->sendPaginatedResponse($categories);
     }
 
     /**

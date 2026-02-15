@@ -39,9 +39,10 @@ class InventoryController extends BaseController
             $query->whereColumn('current_stock', '<=', 'min_stock');
         }
 
-        $items = $query->orderBy('name')->get();
+        $perPage = $request->get('per_page', 15);
+        $items = $query->orderBy('name')->paginate($perPage);
 
-        return $this->sendResponse($items);
+        return $this->sendPaginatedResponse($items);
     }
 
     /**
@@ -170,12 +171,13 @@ class InventoryController extends BaseController
             return $this->sendError('Anda tidak memiliki akses.', null, 403);
         }
 
+        $perPage = $request->get('per_page', 15);
         $transactions = $inventoryItem->transactions()
             ->with('createdByUser')
             ->orderByDesc('created_at')
-            ->get();
+            ->paginate($perPage);
 
-        return $this->sendResponse($transactions);
+        return $this->sendPaginatedResponse($transactions);
     }
 
     /**

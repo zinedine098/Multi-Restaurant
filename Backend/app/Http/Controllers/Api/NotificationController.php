@@ -11,6 +11,7 @@ class NotificationController extends BaseController
     public function index(Request $request): JsonResponse
     {
         $user = $request->user();
+        $perPage = $request->get('per_page', 15);
 
         $query = Notification::where('user_id', $user->id)->orderByDesc('created_at');
 
@@ -18,9 +19,9 @@ class NotificationController extends BaseController
             $query->where('is_read', false);
         }
 
-        $notifications = $query->limit(50)->get();
+        $notifications = $query->paginate($perPage);
 
-        return $this->sendResponse($notifications);
+        return $this->sendPaginatedResponse($notifications);
     }
 
     public function markAsRead(Notification $notification): JsonResponse
