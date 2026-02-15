@@ -2,43 +2,57 @@
 
 namespace Database\Factories;
 
+use App\Models\Restaurant;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Str;
 
-/**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\User>
- */
 class UserFactory extends Factory
 {
-    /**
-     * The current password being used by the factory.
-     */
-    protected static ?string $password;
+    protected $model = User::class;
 
-    /**
-     * Define the model's default state.
-     *
-     * @return array<string, mixed>
-     */
     public function definition(): array
     {
         return [
-            'name' => fake()->name(),
+            'restaurant_id' => Restaurant::factory(),
+            'username' => fake()->unique()->userName(),
+            'password' => 'password123',
+            'full_name' => fake()->name(),
             'email' => fake()->unique()->safeEmail(),
-            'email_verified_at' => now(),
-            'password' => static::$password ??= Hash::make('password'),
-            'remember_token' => Str::random(10),
+            'phone' => fake()->numerify('08##-####-####'),
+            'role' => fake()->randomElement(['manager', 'waiter', 'kitchen']),
+            'avatar_url' => null,
+            'is_active' => true,
+            'last_login_at' => null,
         ];
     }
 
-    /**
-     * Indicate that the model's email address should be unverified.
-     */
-    public function unverified(): static
+    public function owner(): static
     {
-        return $this->state(fn (array $attributes) => [
-            'email_verified_at' => null,
-        ]);
+        return $this->state(fn() => ['role' => 'owner']);
+    }
+
+    public function admin(): static
+    {
+        return $this->state(fn() => ['role' => 'admin']);
+    }
+
+    public function manager(): static
+    {
+        return $this->state(fn() => ['role' => 'manager']);
+    }
+
+    public function waiter(): static
+    {
+        return $this->state(fn() => ['role' => 'waiter']);
+    }
+
+    public function kitchen(): static
+    {
+        return $this->state(fn() => ['role' => 'kitchen']);
+    }
+
+    public function inactive(): static
+    {
+        return $this->state(fn() => ['is_active' => false]);
     }
 }
