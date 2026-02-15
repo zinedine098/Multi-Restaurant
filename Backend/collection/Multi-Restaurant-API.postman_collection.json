@@ -1,0 +1,1734 @@
+{
+    "info": {
+        "_postman_id": "multi-restaurant-api-2026",
+        "name": "Multi-Restaurant API",
+        "description": "REST API Collection untuk Aplikasi Pemesanan Restoran Multi-Cabang.\n\n## Cara Pakai:\n1. Set variable `base_url` ke URL server (default: http://localhost:8000/api)\n2. Login terlebih dahulu via Auth > Login\n3. Token otomatis tersimpan di variable `token`\n4. Semua request authenticated akan menggunakan token tersebut\n\n## Roles:\n- **owner**: Full access semua cabang\n- **admin**: Hampir penuh kecuali delete critical\n- **manager**: Operasional cabang sendiri\n- **waiter**: Input order & proses pembayaran\n- **kitchen**: Update status pesanan",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    },
+    "variable": [
+        {
+            "key": "base_url",
+            "value": "http://localhost:8000/api",
+            "type": "string"
+        },
+        {
+            "key": "token",
+            "value": "",
+            "type": "string"
+        }
+    ],
+    "auth": {
+        "type": "bearer",
+        "bearer": [
+            {
+                "key": "token",
+                "value": "{{token}}",
+                "type": "string"
+            }
+        ]
+    },
+    "item": [
+        {
+            "name": "Auth",
+            "description": "Authentication endpoints: Login, Logout, Profile",
+            "item": [
+                {
+                    "name": "Login",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "var jsonData = pm.response.json();",
+                                    "if (jsonData.success && jsonData.data && jsonData.data.token) {",
+                                    "    pm.collectionVariables.set('token', jsonData.data.token);",
+                                    "    console.log('Token saved successfully!');",
+                                    "}"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "auth": {
+                            "type": "noauth"
+                        },
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"username\": \"owner1\",\n    \"password\": \"password\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/auth/login",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "auth",
+                                "login"
+                            ]
+                        },
+                        "description": "Login user dan mendapatkan Bearer token.\n\nToken otomatis tersimpan ke collection variable."
+                    }
+                },
+                {
+                    "name": "Logout",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/auth/logout",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "auth",
+                                "logout"
+                            ]
+                        },
+                        "description": "Logout dan revoke current token."
+                    }
+                },
+                {
+                    "name": "Get Profile (Me)",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/auth/me",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "auth",
+                                "me"
+                            ]
+                        },
+                        "description": "Get data user yang sedang login beserta data restaurant."
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Restaurants",
+            "description": "CRUD Restoran/Cabang\n- owner/admin: Create, Edit\n- owner: Delete\n- all: View (scoped)",
+            "item": [
+                {
+                    "name": "List All Restaurants",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/restaurants",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "restaurants"
+                            ]
+                        },
+                        "description": "Owner/Admin: lihat semua restaurant.\nRole lain: hanya lihat cabang sendiri."
+                    }
+                },
+                {
+                    "name": "Show Restaurant",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/restaurants/1",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "restaurants",
+                                "1"
+                            ]
+                        },
+                        "description": "Detail restaurant beserta count users, orders, menu items, categories."
+                    }
+                },
+                {
+                    "name": "Create Restaurant",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"name\": \"Restoran Cabang Baru\",\n    \"address\": \"Jl. Sudirman No. 123, Jakarta\",\n    \"phone\": \"021-1234567\",\n    \"email\": \"cabangbaru@resto.com\",\n    \"tax_id\": \"12.345.678.9-012.000\",\n    \"is_active\": true\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/restaurants",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "restaurants"
+                            ]
+                        },
+                        "description": "Buat restaurant baru. Access: owner, admin."
+                    }
+                },
+                {
+                    "name": "Update Restaurant",
+                    "request": {
+                        "method": "PUT",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"name\": \"Restoran Cabang Updated\",\n    \"phone\": \"021-7654321\",\n    \"is_active\": true\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/restaurants/1",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "restaurants",
+                                "1"
+                            ]
+                        },
+                        "description": "Update restaurant. Access: owner, admin."
+                    }
+                },
+                {
+                    "name": "Delete Restaurant",
+                    "request": {
+                        "method": "DELETE",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/restaurants/1",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "restaurants",
+                                "1"
+                            ]
+                        },
+                        "description": "Soft delete restaurant. Access: owner only."
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Users",
+            "description": "User Management\n- owner/admin: Create, Edit\n- owner: Delete\n- owner/admin/manager: View",
+            "item": [
+                {
+                    "name": "List Users",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/users",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "users"
+                            ]
+                        },
+                        "description": "List semua user. Owner/Admin: semua, Manager: cabang sendiri."
+                    }
+                },
+                {
+                    "name": "List Users (Filter by Restaurant)",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/users?restaurant_id=1",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "users"
+                            ],
+                            "query": [
+                                {
+                                    "key": "restaurant_id",
+                                    "value": "1"
+                                }
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "List Users (Filter by Role)",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/users?role=waiter",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "users"
+                            ],
+                            "query": [
+                                {
+                                    "key": "role",
+                                    "value": "waiter"
+                                }
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Show User",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/users/1",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "users",
+                                "1"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Create User",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"restaurant_id\": 1,\n    \"username\": \"waiter1\",\n    \"password\": \"password\",\n    \"full_name\": \"Budi Pelayan\",\n    \"email\": \"budi@resto.com\",\n    \"phone\": \"08123456789\",\n    \"role\": \"waiter\",\n    \"is_active\": true\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/users",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "users"
+                            ]
+                        },
+                        "description": "Buat user baru. Access: owner, admin.\nRole options: owner, admin, manager, waiter, kitchen"
+                    }
+                },
+                {
+                    "name": "Update User",
+                    "request": {
+                        "method": "PUT",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"full_name\": \"Budi Pelayan Updated\",\n    \"phone\": \"08198765432\",\n    \"is_active\": true\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/users/2",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "users",
+                                "2"
+                            ]
+                        },
+                        "description": "Update user. Kosongkan password jika tidak ingin mengubah."
+                    }
+                },
+                {
+                    "name": "Delete User",
+                    "request": {
+                        "method": "DELETE",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/users/2",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "users",
+                                "2"
+                            ]
+                        },
+                        "description": "Soft delete user. Access: owner only."
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Menu Categories",
+            "description": "Kategori Menu per Restaurant\n- owner/admin/manager: CRUD\n- all authenticated: View",
+            "item": [
+                {
+                    "name": "List Menu Categories",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/menu-categories",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "menu-categories"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "List Menu Categories (by Restaurant)",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/menu-categories?restaurant_id=1",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "menu-categories"
+                            ],
+                            "query": [
+                                {
+                                    "key": "restaurant_id",
+                                    "value": "1"
+                                }
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Show Menu Category",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/menu-categories/1",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "menu-categories",
+                                "1"
+                            ]
+                        },
+                        "description": "Detail kategori beserta menu items."
+                    }
+                },
+                {
+                    "name": "Create Menu Category",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"restaurant_id\": 1,\n    \"name\": \"Makanan\",\n    \"description\": \"Aneka makanan utama\",\n    \"sort_order\": 1,\n    \"is_active\": true\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/menu-categories",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "menu-categories"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Update Menu Category",
+                    "request": {
+                        "method": "PUT",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"name\": \"Makanan Utama\",\n    \"sort_order\": 1\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/menu-categories/1",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "menu-categories",
+                                "1"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Delete Menu Category",
+                    "request": {
+                        "method": "DELETE",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/menu-categories/1",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "menu-categories",
+                                "1"
+                            ]
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Menu Items",
+            "description": "Menu Item per Restaurant\n- owner/admin/manager: CRUD\n- all authenticated: View\n- Supports search & filter",
+            "item": [
+                {
+                    "name": "List Menu Items",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/menu-items",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "menu-items"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "List Menu Items (Filter by Category)",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/menu-items?category_id=1",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "menu-items"
+                            ],
+                            "query": [
+                                {
+                                    "key": "category_id",
+                                    "value": "1"
+                                }
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "List Menu Items (Search)",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/menu-items?search=nasi",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "menu-items"
+                            ],
+                            "query": [
+                                {
+                                    "key": "search",
+                                    "value": "nasi"
+                                }
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "List Menu Items (Available Only)",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/menu-items?is_available=true",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "menu-items"
+                            ],
+                            "query": [
+                                {
+                                    "key": "is_available",
+                                    "value": "true"
+                                }
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Show Menu Item",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/menu-items/1",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "menu-items",
+                                "1"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Create Menu Item",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"restaurant_id\": 1,\n    \"category_id\": 1,\n    \"name\": \"Nasi Goreng Spesial\",\n    \"description\": \"Nasi goreng dengan telur, ayam, dan sayuran\",\n    \"price\": 25000,\n    \"cost_price\": 12000,\n    \"is_available\": true,\n    \"is_featured\": true,\n    \"preparation_time\": 15\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/menu-items",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "menu-items"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Update Menu Item",
+                    "request": {
+                        "method": "PUT",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"name\": \"Nasi Goreng Spesial Updated\",\n    \"price\": 28000,\n    \"is_available\": true\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/menu-items/1",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "menu-items",
+                                "1"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Delete Menu Item",
+                    "request": {
+                        "method": "DELETE",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/menu-items/1",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "menu-items",
+                                "1"
+                            ]
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Orders",
+            "description": "Order Lifecycle:\n1. Waiter: Create Order (PENDING)\n2. Kitchen: Update Status (COOKING → COMPLETED)\n3. Waiter: Process Payment (PAID)\n4. Cancel Order",
+            "item": [
+                {
+                    "name": "List Orders",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/orders",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "orders"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "List Orders (Filter by Status)",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/orders?status=pending",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "orders"
+                            ],
+                            "query": [
+                                {
+                                    "key": "status",
+                                    "value": "pending"
+                                }
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "List Orders (Filter by Date Range)",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/orders?date_from=2026-02-01&date_to=2026-02-28",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "orders"
+                            ],
+                            "query": [
+                                {
+                                    "key": "date_from",
+                                    "value": "2026-02-01"
+                                },
+                                {
+                                    "key": "date_to",
+                                    "value": "2026-02-28"
+                                }
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Show Order",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/orders/1",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "orders",
+                                "1"
+                            ]
+                        },
+                        "description": "Detail order beserta items, user, dan status logs."
+                    }
+                },
+                {
+                    "name": "Create Order (Waiter)",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"customer_name\": \"Budi Santoso\",\n    \"customer_phone\": \"08123456789\",\n    \"notes\": \"Jangan pakai bawang\",\n    \"items\": [\n        {\n            \"menu_item_id\": 1,\n            \"quantity\": 2,\n            \"notes\": \"Pedas\"\n        },\n        {\n            \"menu_item_id\": 2,\n            \"quantity\": 1,\n            \"notes\": null\n        }\n    ]\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/orders",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "orders"
+                            ]
+                        },
+                        "description": "Buat order baru. Access: waiter only.\n\nOrder number otomatis di-generate: ORD-YYYYMMDD-XXXX\nStatus awal: PENDING\nNotifikasi otomatis ke staff dapur."
+                    }
+                },
+                {
+                    "name": "Update Order Status (Kitchen)",
+                    "request": {
+                        "method": "PATCH",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"status\": \"completed\",\n    \"notes\": \"Pesanan selesai dimasak\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/orders/1/status",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "orders",
+                                "1",
+                                "status"
+                            ]
+                        },
+                        "description": "Update status order. Access: kitchen only.\n\nValid transitions:\n- pending → cooking\n- pending → completed\n- cooking → completed\n\nNotifikasi otomatis ke pelayan saat completed."
+                    }
+                },
+                {
+                    "name": "Process Payment (Waiter)",
+                    "request": {
+                        "method": "PATCH",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"payment_amount\": 100000,\n    \"payment_method\": \"cash\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/orders/1/pay",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "orders",
+                                "1",
+                                "pay"
+                            ]
+                        },
+                        "description": "Proses pembayaran. Access: waiter only.\nOrder harus berstatus COMPLETED.\n\nPayment methods: cash, qris, transfer, debit, credit\nKembalian dihitung otomatis."
+                    }
+                },
+                {
+                    "name": "Cancel Order",
+                    "request": {
+                        "method": "PATCH",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"cancellation_reason\": \"Pelanggan membatalkan pesanan\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/orders/1/cancel",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "orders",
+                                "1",
+                                "cancel"
+                            ]
+                        },
+                        "description": "Batalkan order. Access: owner, admin, manager, waiter (own only).\nTidak bisa cancel order yang sudah paid/cancelled."
+                    }
+                },
+                {
+                    "name": "Kitchen Display - Pending Orders",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/orders-kitchen/pending",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "orders-kitchen",
+                                "pending"
+                            ]
+                        },
+                        "description": "Tampilan dapur: order pending & cooking.\nAccess: owner, admin, manager, kitchen."
+                    }
+                },
+                {
+                    "name": "Waiter - Completed Orders",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/orders-waiter/completed",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "orders-waiter",
+                                "completed"
+                            ]
+                        },
+                        "description": "Order yang sudah selesai, siap dipanggil dan diproses pembayaran.\nAccess: waiter only."
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Inventory",
+            "description": "Inventory Management\n- owner/admin/manager: Full CRUD\n- Includes stock transactions (in/out/adjustment)",
+            "item": [
+                {
+                    "name": "List Inventory Items",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/inventory-items",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "inventory-items"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "List Inventory Items (Low Stock)",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/inventory-items?low_stock=true",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "inventory-items"
+                            ],
+                            "query": [
+                                {
+                                    "key": "low_stock",
+                                    "value": "true"
+                                }
+                            ]
+                        },
+                        "description": "Filter item yang stoknya di bawah minimum."
+                    }
+                },
+                {
+                    "name": "Show Inventory Item",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/inventory-items/1",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "inventory-items",
+                                "1"
+                            ]
+                        },
+                        "description": "Detail item beserta history transaksi."
+                    }
+                },
+                {
+                    "name": "Create Inventory Item",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"restaurant_id\": 1,\n    \"name\": \"Beras\",\n    \"unit\": \"kg\",\n    \"min_stock\": 10,\n    \"current_stock\": 50,\n    \"unit_cost\": 12000,\n    \"supplier_name\": \"PT Beras Jaya\",\n    \"supplier_phone\": \"021-5551234\",\n    \"is_active\": true\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/inventory-items",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "inventory-items"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Update Inventory Item",
+                    "request": {
+                        "method": "PUT",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"name\": \"Beras Premium\",\n    \"min_stock\": 15,\n    \"unit_cost\": 13000\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/inventory-items/1",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "inventory-items",
+                                "1"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Delete Inventory Item",
+                    "request": {
+                        "method": "DELETE",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/inventory-items/1",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "inventory-items",
+                                "1"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "List Transactions (for Item)",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/inventory-items/1/transactions",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "inventory-items",
+                                "1",
+                                "transactions"
+                            ]
+                        },
+                        "description": "Histori transaksi stok untuk item tertentu."
+                    }
+                },
+                {
+                    "name": "Create Transaction - Stock In",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"type\": \"in\",\n    \"quantity\": 25,\n    \"unit_cost\": 12000,\n    \"notes\": \"Pembelian dari supplier\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/inventory-items/1/transactions",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "inventory-items",
+                                "1",
+                                "transactions"
+                            ]
+                        },
+                        "description": "Stok masuk. current_stock otomatis bertambah."
+                    }
+                },
+                {
+                    "name": "Create Transaction - Stock Out",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"type\": \"out\",\n    \"quantity\": 5,\n    \"notes\": \"Pemakaian harian\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/inventory-items/1/transactions",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "inventory-items",
+                                "1",
+                                "transactions"
+                            ]
+                        },
+                        "description": "Stok keluar. current_stock otomatis berkurang.\nError jika stok tidak cukup."
+                    }
+                },
+                {
+                    "name": "Create Transaction - Adjustment",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"type\": \"adjustment\",\n    \"quantity\": 40,\n    \"notes\": \"Penyesuaian stok setelah stock opname\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/inventory-items/1/transactions",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "inventory-items",
+                                "1",
+                                "transactions"
+                            ]
+                        },
+                        "description": "Adjustment: current_stock di-set ke nilai quantity."
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Reports",
+            "description": "Laporan Penjualan\n- owner/admin: semua cabang\n- manager: cabang sendiri",
+            "item": [
+                {
+                    "name": "Dashboard Stats",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/reports/dashboard",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "reports",
+                                "dashboard"
+                            ]
+                        },
+                        "description": "Statistik dashboard: today orders, pending, completed, sales, dll."
+                    }
+                },
+                {
+                    "name": "Dashboard Stats (by Restaurant)",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/reports/dashboard?restaurant_id=1",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "reports",
+                                "dashboard"
+                            ],
+                            "query": [
+                                {
+                                    "key": "restaurant_id",
+                                    "value": "1"
+                                }
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Daily Sales Report",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/reports/daily-sales?date_from=2026-02-01&date_to=2026-02-28",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "reports",
+                                "daily-sales"
+                            ],
+                            "query": [
+                                {
+                                    "key": "date_from",
+                                    "value": "2026-02-01"
+                                },
+                                {
+                                    "key": "date_to",
+                                    "value": "2026-02-28"
+                                }
+                            ]
+                        },
+                        "description": "Laporan penjualan harian: total orders, gross sales, cancelled, paid."
+                    }
+                },
+                {
+                    "name": "Popular Items Report",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/reports/popular-items?limit=10",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "reports",
+                                "popular-items"
+                            ],
+                            "query": [
+                                {
+                                    "key": "limit",
+                                    "value": "10"
+                                }
+                            ]
+                        },
+                        "description": "Menu paling laris: total quantity, revenue, order count."
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Settings",
+            "description": "Konfigurasi per Restaurant\n- owner: system config + delete\n- admin/manager: branch config",
+            "item": [
+                {
+                    "name": "List Settings",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/settings",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "settings"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "List Settings (by Restaurant)",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/settings?restaurant_id=1",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "settings"
+                            ],
+                            "query": [
+                                {
+                                    "key": "restaurant_id",
+                                    "value": "1"
+                                }
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Create/Update Setting (Upsert)",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"restaurant_id\": 1,\n    \"key\": \"tax_percentage\",\n    \"value\": \"10\",\n    \"type\": \"number\",\n    \"description\": \"Persentase pajak yang dikenakan\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/settings",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "settings"
+                            ]
+                        },
+                        "description": "Upsert: create jika belum ada, update jika key sudah ada.\nType options: string, number, boolean, json"
+                    }
+                },
+                {
+                    "name": "Delete Setting",
+                    "request": {
+                        "method": "DELETE",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/settings/1",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "settings",
+                                "1"
+                            ]
+                        },
+                        "description": "Hapus setting. Access: owner only."
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Notifications",
+            "description": "Notifikasi real-time per user.\nAll authenticated users dapat mengakses notifikasi mereka sendiri.",
+            "item": [
+                {
+                    "name": "List Notifications",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/notifications",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "notifications"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "List Notifications (Unread Only)",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/notifications?unread=true",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "notifications"
+                            ],
+                            "query": [
+                                {
+                                    "key": "unread",
+                                    "value": "true"
+                                }
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Get Unread Count",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/notifications/unread-count",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "notifications",
+                                "unread-count"
+                            ]
+                        },
+                        "description": "Jumlah notifikasi yang belum dibaca."
+                    }
+                },
+                {
+                    "name": "Mark as Read",
+                    "request": {
+                        "method": "PATCH",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/notifications/1/read",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "notifications",
+                                "1",
+                                "read"
+                            ]
+                        },
+                        "description": "Tandai satu notifikasi sebagai sudah dibaca."
+                    }
+                },
+                {
+                    "name": "Mark All as Read",
+                    "request": {
+                        "method": "PATCH",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/notifications/read-all",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "notifications",
+                                "read-all"
+                            ]
+                        },
+                        "description": "Tandai semua notifikasi sebagai sudah dibaca."
+                    }
+                }
+            ]
+        }
+    ]
+}
